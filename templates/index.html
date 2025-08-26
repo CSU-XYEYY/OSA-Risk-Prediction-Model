@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>OSA Risk-Prediction Model</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>OSA Risk-Prediction Model</h1>
+
+        <p class="warning" role="alert"><strong>Warning:</strong> This is a development model and is for testing purposes only. Do not use it in clinical diagnosis!!</p>
+
+        <p class="cols-line"><strong>Input order: {{ columns | join(', ') }}</strong></p>
+
+        <div class="table-controls">
+            <button id="add-row" class="btn" type="button">Add row</button>
+            <button id="remove-row" class="btn btn-secondary" type="button">Remove last row</button>
+        </div>
+
+        <form id="predict-form" class="form-grid">
+            <div class="table-wrap">
+                <table id="data-table" class="input-table" aria-label="Input data table">
+                    <thead>
+                        <tr>
+                            {% for col in columns %}
+                            <th>{{ col }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            {% for col in columns %}
+                            <td>
+                                <input type="text" class="cell-input" inputmode="decimal"
+                                       placeholder="-" value="{{ defaults[loop.index0] if defaults and defaults|length > loop.index0 else '' }}" />
+                            </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Predict</button>
+            </div>
+        </form>
+
+        <div class="result" id="result" style="display:none;">
+            <h2>Prediction Results</h2>
+            <p id="summary"></p>
+            <div id="pred-list"></div>
+        </div>
+
+        <div id="prediction-container" class="prediction-container" style="display:none;">
+            <div class="prediction-inner">
+                <h2 class="prediction-title">Prediction Result:</h2>
+                <div id="prediction-badge" class="result-badge">--</div>
+                <div id="prediction-sub" class="prediction-sub"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

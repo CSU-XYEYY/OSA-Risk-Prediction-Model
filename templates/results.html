@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Regression Results</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Regression Prediction Results</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Index</th>
+                    <th>Predicted Value</th>
+                    <th>Actual Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for index, predicted, actual in results %}
+                <tr>
+                    <td>{{ index }}</td>
+                    <td>{{ predicted }}</td>
+                    <td>{{ actual }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{ url_for('index') }}">Go Back</a>
+    </div>
+</body>
+</html>

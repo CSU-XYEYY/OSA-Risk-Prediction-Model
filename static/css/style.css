@@ -1,0 +1,268 @@
+body {
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background:#f6f6f6;
+    margin:0;
+    padding:0;
+    color:#222;
+}
+
+header {
+    background: #35424a;
+    color: #ffffff;
+    padding: 10px 0;
+    text-align: center;
+}
+
+h1 {
+    margin: 0;
+    color:#0b4a70;
+    margin-top:0;
+    font-size:22px;
+}
+
+.container {
+    max-width:960px;
+    margin:32px auto;
+    padding:24px;
+    background:#fff;
+    border-radius:8px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.06);
+}
+
+form {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+input[type="text"],
+input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+input[type="submit"] {
+    background: #35424a;
+    color: #ffffff;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+input[type="submit"]:hover {
+    background: #45a049;
+}
+
+.results {
+    margin-top: 20px;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.results table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.results th,
+.results td {
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.results th {
+    background: #35424a;
+    color: #ffffff;
+}
+
+p {
+    margin:8px 0 14px 0;
+    line-height:1.4;
+    color:#333;
+}
+
+.cols-line {
+    background:#f3fbff;
+    padding:8px;
+    border-radius:6px;
+    font-size:14px;
+}
+
+/* 控件区 */
+.table-controls {
+    display:flex;
+    gap:8px;
+    margin-bottom:12px;
+}
+
+.btn {
+    padding:8px 12px;
+    border-radius:6px;
+    border:1px solid #007bff;
+    background:#fff;
+    color:#007bff;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.btn:hover {
+    background:#f0f8ff;
+}
+
+.btn-primary {
+    background:#007bff;
+    color:#fff;
+    border-color:#007bff;
+}
+
+.btn-primary:hover {
+    background:#006ae6;
+}
+
+.btn-secondary {
+    border-color:#6c757d;
+    color:#6c757d;
+}
+
+.form-grid {
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+/* 表格样式 */
+.table-wrap {
+    overflow:auto;
+}
+
+.input-table {
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    font-size:14px;
+    min-width:680px;
+}
+
+.input-table thead th {
+    position:sticky;
+    top:0;
+    background:#f8fbff;
+    color:#0b4a70;
+    border-bottom:2px solid #e6f0fa;
+    padding:10px 12px;
+    text-align:left;
+    font-weight:700;
+}
+
+.input-table tbody td {
+    padding:6px;
+    border-bottom:1px solid #eef3f7;
+    vertical-align:middle;
+}
+
+.cell-input {
+    width:100%;
+    box-sizing:border-box;
+    padding:8px;
+    border:1px solid #d7e6f6;
+    border-radius:6px;
+    font-size:13px;
+    background:#fff;
+    color:#111;
+    outline:none;
+}
+
+.cell-input:focus {
+    border-color:#66a6ff;
+    box-shadow:0 0 0 3px rgba(102,166,255,0.08);
+}
+
+/* 操作按钮行 */
+.form-actions {
+    text-align:right;
+    margin-top:6px;
+}
+
+/* 结果样式 */
+.result {
+    margin-top:20px;
+    padding:12px;
+    background:#fafafa;
+    border-radius:6px;
+    border:1px solid #f0f0f0;
+}
+
+/* 预测结果样式 */
+.prediction-container {
+    margin: 20px auto;
+    max-width: 760px;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    padding: 24px;
+}
+
+.prediction-inner { 
+    text-align: center; 
+}
+
+.prediction-title {
+    font-size: 22px;
+    color: #222;
+    margin-bottom: 16px;
+    font-weight: 700;
+}
+
+.result-badge {
+    display: inline-block;
+    min-width: 180px;
+    padding: 18px 28px;
+    border-radius: 8px;
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    margin: 8px 0 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.result-badge.crc { 
+    background: #d9534f; 
+} /* 红色 */
+
+.result-badge.normal { 
+    background: #28a745; 
+} /* 绿色 */
+
+.prediction-sub { 
+    color: #555; 
+    margin-top: 8px; 
+    font-size: 14px; 
+}
+
+/* 响应式 */
+@media (max-width:700px) {
+    .input-table {
+        min-width:0;
+        font-size:13px;
+    }
+    .input-table thead th {
+        font-size:12px;
+        padding:8px;
+    }
+    .cell-input {
+        padding:6px;
+        font-size:13px;
+    }
+    .table-controls {
+        flex-direction:column;
+        align-items:flex-start;
+        gap:6px;
+    }
+}
