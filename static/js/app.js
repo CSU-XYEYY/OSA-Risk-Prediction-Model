@@ -1,164 +1,92 @@
-document.addEventListener('DOMContentLoaded', function () {
-    // Ensure result nodes exist
-    let resultDiv = document.getElementById('result');
-    if (!resultDiv) {
-        resultDiv = document.createElement('div');
-        resultDiv.id = 'result';
-        resultDiv.style.display = 'none';
-        document.body.appendChild(resultDiv);
-    }
-    let summaryEl = document.getElementById('summary');
-    if (!summaryEl) {
-        summaryEl = document.createElement('div');
-        summaryEl.id = 'summary';
-        resultDiv.appendChild(summaryEl);
-    }
-    let predList = document.getElementById('pred-list');
-    if (!predList) {
-        predList = document.createElement('div');
-        predList.id = 'pred-list';
-        resultDiv.appendChild(predList);
-    }
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("predict-form");
+    const table = document.getElementById("data-table").getElementsByTagName("tbody")[0];
+    const addRowBtn = document.getElementById("add-row");
+    const removeRowBtn = document.getElementById("remove-row");
 
-    // Table row controls (if present)
-    const table = document.getElementById('data-table');
-    const addRowBtn = document.getElementById('add-row');
-    const removeRowBtn = document.getElementById('remove-row');
+    const resultContainer = document.getElementById("prediction-container");
+    const badge = document.getElementById("prediction-badge");
+    const sub = document.getElementById("prediction-sub");
 
-    if (addRowBtn && table) {
-        addRowBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const tbody = table.querySelector('tbody');
-            if (!tbody || tbody.rows.length === 0) return;
-            const newRow = tbody.rows[0].cloneNode(true);
-            Array.from(newRow.querySelectorAll('input.cell-input')).forEach(inp => inp.value = '');
-            tbody.appendChild(newRow);
-        });
-    }
+    const predList = document.getElementById("pred-list"); // 用于显示多行结果
 
-    if (removeRowBtn && table) {
-        removeRowBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const tbody = table.querySelector('tbody');
-            if (tbody && tbody.rows.length > 1) tbody.deleteRow(-1);
-        });
-    }
+    // 添加一行
+    addRowBtn.addEventListener("click", () => {
+        const newRow = table.rows[0].cloneNode(true);
+        Array.from(newRow.querySelectorAll("input")).forEach(input => input.value = "");
+        table.appendChild(newRow);
+    });
 
-    // Choose form: prefer predict-form (table), otherwise regression-form
-    const form = document.getElementById('predict-form') || document.getElementById('regression-form');
-    if (!form) {
-        console.warn('No predict-form or regression-form found in DOM.');
-        return;
-    }
-
-    function showPredictionResult(resJson) {
-        const container = document.getElementById('prediction-container') || document.getElementById('result');
-        if (!container) return;
-
-        // Resolve label from common fields
-        let label = resJson.predicted_label || resJson.label || resJson.predicted || (Array.isArray(resJson.predictions) ? resJson.predictions[0] : undefined);
-        // Map numeric/string indicators to human label
-        if (label === 1 || label === '1' || String(label).toLowerCase() === 'positive') label = 'CRC';
-        if (label === 0 || label === '0' || String(label).toLowerCase() === 'negative') label = 'Normal';
-        label = label ?? 'Unknown';
-
-        const cls = (String(label).toLowerCase().includes('crc') || String(label).toLowerCase().includes('positive') || label === '1') ? 'crc' : 'normal';
-
-        const badge = document.getElementById('prediction-badge');
-        if (badge) {
-            badge.textContent = label;
-            badge.classList.remove('crc', 'normal');
-            badge.classList.add(cls);
-        }
-
-        // Summary and predictions list (for table mode)
-        const nRows = resJson.n_rows ?? (Array.isArray(resJson.predictions) ? resJson.predictions.length : undefined);
-        summaryEl.textContent = nRows ? `Predicted ${nRows} rows` : '';
-
-        if (Array.isArray(resJson.predictions)) {
-            predList.innerHTML = '<h3>Top predictions</h3>';
-            const ul = document.createElement('ul');
-            resJson.predictions.slice(0, 20).forEach((p, i) => {
-                const li = document.createElement('li');
-                li.textContent = `${i}: ${p}`;
-                ul.appendChild(li);
-            });
-            predList.appendChild(ul);
-        }
-
-        // Additional details
-        const sub = document.getElementById('prediction-sub');
-        if (sub) {
-            const details = [];
-            if (resJson.score !== undefined) details.push(`Score: ${resJson.score}`);
-            if (resJson.probability !== undefined) details.push(`Probability: ${resJson.probability}`);
-            sub.textContent = details.join(' • ');
-        }
-
-        container.style.display = 'block';
-    }
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        // If predict-form: collect table rows into CSV and upload as FormData('data')
-        if (form.id === 'predict-form') {
-            const tableEl = document.getElementById('data-table');
-            let csvText = '';
-            if (tableEl) {
-                const rows = tableEl.querySelectorAll('tbody tr');
-                const rowVals = [];
-                rows.forEach(r => {
-                    const vals = Array.from(r.querySelectorAll('input.cell-input')).map(i => {
-                        const v = (i.value ?? '').trim();
-                        return v.includes(',') ? `"${v.replace(/"/g, '""')}"` : v;
-                    });
-                    rowVals.push(vals.join(','));
-                });
-                csvText = rowVals.join('\n');
-            } else {
-                const ta = document.getElementById('csv-input');
-                csvText = ta ? ta.value.trim() : '';
-            }
-
-            if (!csvText) {
-                alert('No input data found to predict.');
-                return;
-            }
-
-            const fd = new FormData();
-            fd.append('data', csvText);
-
-            try {
-                const resp = await fetch('/predict', { method: 'POST', body: fd });
-                const resJson = await resp.json();
-                if (!resp.ok) throw new Error(resJson.error || 'Prediction failed');
-                showPredictionResult(resJson);
-            } catch (err) {
-                alert('Error: ' + err.message);
-                console.error(err);
-            }
-
-            return;
-        }
-
-        // Else regression-form: serialize to JSON
-        const formData = new FormData(form);
-        const payload = {};
-        formData.forEach((value, key) => payload[key] = value);
-
-        try {
-            const resp = await fetch('/predict', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const resJson = await resp.json();
-            if (!resp.ok) throw new Error(resJson.error || 'Prediction failed');
-            showPredictionResult(resJson);
-        } catch (err) {
-            alert('Error: ' + err.message);
-            console.error(err);
+    // 删除最后一行
+    removeRowBtn.addEventListener("click", () => {
+        if (table.rows.length > 1) {
+            table.deleteRow(table.rows.length - 1);
         }
     });
+
+    // 提交表单
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        // 收集表格数据
+        const data = [];
+        for (let r = 0; r < table.rows.length; r++) {
+            const row = [];
+            const inputs = table.rows[r].querySelectorAll("input");
+            inputs.forEach(input => {
+                row.push(parseFloat(input.value) || 0);
+            });
+            data.push(row);
+        }
+
+        // 调用后端 API
+        fetch("/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ data: data })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.predictions) {
+                showPredictions(result.predictions);
+            } else {
+                showError("No predictions returned");
+            }
+        })
+        .catch(err => {
+            console.error("Prediction error:", err);
+            showError("Error: could not get prediction");
+        });
+    });
+
+    // 显示多行预测结果
+    function showPredictions(pred_values) {
+        const threshold = 0.75;
+
+        // 显示第一个结果在 badge
+        const firstPred = pred_values[0];
+        badge.textContent = firstPred.toFixed(3);
+        sub.textContent = firstPred < threshold ? "no or mild OSA" : "moderate to severe OSA";
+        sub.style.color = firstPred < threshold ? "green" : "red";
+
+        // 显示所有结果在 pred-list
+        predList.innerHTML = ""; // 清空旧内容
+        pred_values.forEach((val, idx) => {
+            const p = document.createElement("p");
+            p.textContent = `Row ${idx + 1}: ${val.toFixed(3)} → ${val < threshold ? "no or mild OSA" : "moderate to severe OSA"}`;
+            p.style.color = val < threshold ? "green" : "red";
+            predList.appendChild(p);
+        });
+
+        resultContainer.style.display = "block";
+    }
+
+    // 错误显示
+    function showError(msg) {
+        badge.textContent = "--";
+        sub.textContent = msg;
+        sub.style.color = "gray";
+        predList.innerHTML = "";
+        resultContainer.style.display = "block";
+    }
 });

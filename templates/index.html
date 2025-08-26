@@ -7,16 +7,16 @@
 </head>
 <body>
     <div class="container">
-        <h1>OSA Risk-Prediction Model</h1>
+        <h1 style="text-align:center;">OSA Risk-Prediction Model</h1>
 
-        <p class="warning" role="alert"><strong>Warning:</strong> This is a development model and is for testing purposes only. Do not use it in clinical diagnosis!!</p>
+        <p class="warning" role="alert" style="color: #0465c6;"><strong>Warning:</strong> This is a development model and is for testing purposes only. Do not use it in clinical diagnosis!!</p>
 
         <p class="cols-line"><strong>Input order: {{ columns | join(', ') }}</strong></p>
 
-        <div class="table-controls">
+        <!-- <div class="table-controls">
             <button id="add-row" class="btn" type="button">Add row</button>
             <button id="remove-row" class="btn btn-secondary" type="button">Remove last row</button>
-        </div>
+        </div> -->
 
         <form id="predict-form" class="form-grid">
             <div class="table-wrap">
@@ -62,5 +62,33 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+      document.getElementById('predict-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const formData = new FormData(this);
+        fetch('/predict', { method: 'POST', body: formData })
+          .then(r => r.json())
+          .then(data => {
+            if (data.error) {
+              // 显示错误
+            } else {
+              // 使用 results 而不是 predictions
+              const results = data.results || [];
+              const container = document.getElementById('results');
+              container.innerHTML = '';
+              results.forEach((row, i) => {
+                const div = document.createElement('div');
+                div.textContent = `${row.label} (${row.value.toFixed(3)})`;
+                div.style.background = row.color;
+                div.style.padding = '8px';
+                div.style.margin = '4px 0';
+                container.appendChild(div);
+              });
+            }
+          })
+          .catch(console.error);
+      });
+    </script>
 </body>
 </html>
