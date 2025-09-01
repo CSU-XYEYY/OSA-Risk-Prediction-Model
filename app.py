@@ -28,7 +28,7 @@ DEFAULT_MODEL = os.path.join(BASE_DIR, "final_model.pkl")
 DEFAULT_POLY = os.path.join(BASE_DIR, "poly_scaler.pkl")
 
 # 固定参数名
-CSV_COLUMNS = ["Glu", "FIB", "AST.ALT", "AG", "Age", "BMI", "NC", "Mallampati"]
+CSV_COLUMNS = ["Glu(mmol/L) ", "FIB(mg/dL) ", "AST/ALT", "AG(mmol/L)", "Age", "BMI(kg/m^2)", "NC(cm)", "Mallampati"]
 
 # 默认值
 DEFAULT_VALUES = ["4.22", "1.71", "0.74", "17.8", "21", "23.4", "43", "1"]
@@ -44,7 +44,18 @@ def predict():
         print("DEBUG: poly/model exist:", os.path.exists(DEFAULT_POLY), os.path.exists(DEFAULT_MODEL))
 
         # 接收前端传来的 CSV 格式文本
-        data_text = request.form.get("data", "")
+        # 兼容：form field 'data' 或 JSON { "data": "..." } 或 原始 body 文本
+        data_text = ""
+        print("DEBUG: Content-Type:", request.content_type)
+        if 'data' in request.form:
+            data_text = request.form.get("data", "")
+        else:
+            json_body = request.get_json(silent=True)
+            if json_body and isinstance(json_body, dict) and 'data' in json_body:
+                data_text = json_body.get('data', "")
+            else:
+                # 尝试原始 body（纯文本 CSV）
+                data_text = request.get_data(as_text=True) or ""
         print("DEBUG: Received raw data_text repr:", repr(data_text)[:1000])
         if not data_text or str(data_text).strip() == "":
             return jsonify({"error": "No input data provided"}), 400

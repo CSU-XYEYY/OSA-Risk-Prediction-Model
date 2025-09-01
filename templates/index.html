@@ -63,32 +63,68 @@
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script>
-      document.getElementById('predict-form').addEventListener('submit', function(event) {
-        event.preventDefault();
+      // 在提交前把表格数据序列化为 CSV 字符串，放入隐藏字段 name="data"
+      // 并通过 multipart/form-data 提交，这样后端的 request.form['data'] 能读取到内容。
+      (function() {
+        const form = document.getElementById('predict-form');
+        form.insertAdjacentHTML('beforeend', '<input type="hidden" name="data" id="hidden-data" />');
+        form.addEventListener('submit', function(event) {
+          event.preventDefault();
+          const table = document.getElementById('data-table').querySelector('tbody');
+          const rows = [];
+          for (let r = 0; r < table.rows.length; r++) {
+            const inputs = table.rows[r].querySelectorAll('input');
+            const values = Array.from(inputs).map(inp => (inp.value === '' ? '' : inp.value));
+            // 用逗号分隔，每行一条 CSV（不包含 header）
+            rows.push(values.join(','));
+          }
+          const csvText = rows.join('\\n');
+          document.getElementById('hidden-data').value = csvText;
 
-        const formData = new FormData(this);
-        fetch('/predict', { method: 'POST', body: formData })
-          .then(r => r.json())
-          .then(data => {
-            if (data.error) {
-              // 显示错误
-            } else {
-              // 使用 results 而不是 predictions
+          const formData = new FormData(this);
+          fetch('/predict', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(data => {
+              if (data.error) {
+                console.error('预测错误', data.error);
+                return;
+              }
+
+              // 显示第一个预测为一个居中方块，格式为 "Label (0.600)"
               const results = data.results || [];
-              const container = document.getElementById('results');
-              container.innerHTML = '';
-              results.forEach((row, i) => {
-                const div = document.createElement('div');
-                div.textContent = `${row.label} (${row.value.toFixed(3)})`;
-                div.style.background = row.color;
-                div.style.padding = '8px';
-                div.style.margin = '4px 0';
-                container.appendChild(div);
-              });
-            }
-          })
-          .catch(console.error);
-      });
+              if (results.length === 0) {
+                console.warn('no results');
+                return;
+              }
+              const first = results[0];
+
+              // 显示容器并置中
+              const container = document.getElementById('prediction-container');
+              container.style.display = 'flex';
+              container.style.justifyContent = 'center';
+              container.style.alignItems = 'center';
+              container.style.marginTop = '16px';
+
+              // 设置方块样式并显示文本
+              const badge = document.getElementById('prediction-badge');
+              badge.textContent = `${first.label} (${first.value.toFixed(3)})`;
+              badge.style.background = first.color;
+              badge.style.color = '#ffffff';
+              badge.style.padding = '18px 28px';
+              badge.style.borderRadius = '8px';
+              badge.style.minWidth = '240px';
+              badge.style.textAlign = 'center';
+              badge.style.fontWeight = '600';
+              badge.style.boxShadow = '0 2px 6px rgba(0,0,0,0.15)';
+
+              // 额外说明文本（可选）
+              const sub = document.getElementById('prediction-sub');
+              sub.textContent = ''; // 如需显示额外信息可以设置
+
+            })
+            .catch(err => console.error(err));
+        });
+      })();
     </script>
 </body>
 </html>
