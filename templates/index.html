@@ -2,21 +2,16 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>OSA Risk-Prediction Model</title>
+    <title>OSA Risk Classification Model </title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1 style="text-align:center;">OSA Risk-Prediction Model</h1>
+        <h1 style="text-align:center;">OSA Risk Classification Model </h1>
 
         <p class="warning" role="alert" style="color: #0465c6;"><strong>Warning:</strong> This is a development model and is for testing purposes only. Do not use it in clinical diagnosis!!</p>
 
         <p class="cols-line"><strong>Input order: {{ columns | join(', ') }}</strong></p>
-
-        <!-- <div class="table-controls">
-            <button id="add-row" class="btn" type="button">Add row</button>
-            <button id="remove-row" class="btn btn-secondary" type="button">Remove last row</button>
-        </div> -->
 
         <form id="predict-form" class="form-grid">
             <div class="table-wrap">
@@ -57,74 +52,11 @@
                 <h2 class="prediction-title">Prediction Result:</h2>
                 <div id="prediction-badge" class="result-badge">--</div>
                 <div id="prediction-sub" class="prediction-sub"></div>
+                <div id="probability-info" class="probability-info" style="margin-top: 12px; font-size: 14px; color: #555;"></div>
             </div>
         </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-    <script>
-      // 在提交前把表格数据序列化为 CSV 字符串，放入隐藏字段 name="data"
-      // 并通过 multipart/form-data 提交，这样后端的 request.form['data'] 能读取到内容。
-      (function() {
-        const form = document.getElementById('predict-form');
-        form.insertAdjacentHTML('beforeend', '<input type="hidden" name="data" id="hidden-data" />');
-        form.addEventListener('submit', function(event) {
-          event.preventDefault();
-          const table = document.getElementById('data-table').querySelector('tbody');
-          const rows = [];
-          for (let r = 0; r < table.rows.length; r++) {
-            const inputs = table.rows[r].querySelectorAll('input');
-            const values = Array.from(inputs).map(inp => (inp.value === '' ? '' : inp.value));
-            // 用逗号分隔，每行一条 CSV（不包含 header）
-            rows.push(values.join(','));
-          }
-          const csvText = rows.join('\\n');
-          document.getElementById('hidden-data').value = csvText;
-
-          const formData = new FormData(this);
-          fetch('/predict', { method: 'POST', body: formData })
-            .then(r => r.json())
-            .then(data => {
-              if (data.error) {
-                console.error('预测错误', data.error);
-                return;
-              }
-
-              // 显示第一个预测为一个居中方块，格式为 "Label (0.600)"
-              const results = data.results || [];
-              if (results.length === 0) {
-                console.warn('no results');
-                return;
-              }
-              const first = results[0];
-
-              // 显示容器并置中
-              const container = document.getElementById('prediction-container');
-              container.style.display = 'flex';
-              container.style.justifyContent = 'center';
-              container.style.alignItems = 'center';
-              container.style.marginTop = '16px';
-
-              // 设置方块样式并显示文本
-              const badge = document.getElementById('prediction-badge');
-              badge.textContent = `${first.label} (${first.value.toFixed(3)})`;
-              badge.style.background = first.color;
-              badge.style.color = '#ffffff';
-              badge.style.padding = '18px 28px';
-              badge.style.borderRadius = '8px';
-              badge.style.minWidth = '240px';
-              badge.style.textAlign = 'center';
-              badge.style.fontWeight = '600';
-              badge.style.boxShadow = '0 2px 6px rgba(0,0,0,0.15)';
-
-              // 额外说明文本（可选）
-              const sub = document.getElementById('prediction-sub');
-              sub.textContent = ''; // 如需显示额外信息可以设置
-
-            })
-            .catch(err => console.error(err));
-        });
-      })();
-    </script>
 </body>
 </html>

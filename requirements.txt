@@ -6,3 +6,4 @@ joblib==1.1.0
 matplotlib==3.5.1
 openpyxl==3.0.9
 Werkzeug==2.1.2
+xgboost==1.7.6

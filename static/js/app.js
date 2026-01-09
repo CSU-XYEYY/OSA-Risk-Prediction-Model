@@ -1,28 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("predict-form");
     const table = document.getElementById("data-table").getElementsByTagName("tbody")[0];
-    const addRowBtn = document.getElementById("add-row");
-    const removeRowBtn = document.getElementById("remove-row");
 
     const resultContainer = document.getElementById("prediction-container");
     const badge = document.getElementById("prediction-badge");
     const sub = document.getElementById("prediction-sub");
+    const probInfo = document.getElementById("probability-info");
 
     const predList = document.getElementById("pred-list"); // 用于显示多行结果
-
-    // 添加一行
-    addRowBtn.addEventListener("click", () => {
-        const newRow = table.rows[0].cloneNode(true);
-        Array.from(newRow.querySelectorAll("input")).forEach(input => input.value = "");
-        table.appendChild(newRow);
-    });
-
-    // 删除最后一行
-    removeRowBtn.addEventListener("click", () => {
-        if (table.rows.length > 1) {
-            table.deleteRow(table.rows.length - 1);
-        }
-    });
 
     // 提交表单
     form.addEventListener("submit", (e) => {
@@ -48,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(response => response.json())
         .then(result => {
             if (result.predictions) {
-                showPredictions(result.predictions);
+                showPredictions(result);
             } else {
                 showError("No predictions returned");
             }
@@ -59,22 +44,37 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // 显示多行预测结果
-    function showPredictions(pred_values) {
-        const threshold = 0.75;
+    // 显示预测结果
+    function showPredictions(result) {
+        const predictions = result.predictions || [];
+        const probabilities = result.probabilities || [];
+        const labels = result.labels || [];
+        const resultsData = result.results || [];
 
-        // 显示第一个结果在 badge
-        const firstPred = pred_values[0];
-        badge.textContent = firstPred.toFixed(3);
-        sub.textContent = firstPred < threshold ? "no or mild OSA" : "moderate to severe OSA";
-        sub.style.color = firstPred < threshold ? "green" : "red";
+        if (predictions.length === 0) {
+            showError("No predictions available");
+            return;
+        }
+
+        // 显示第一个结果
+        const firstResult = resultsData[0];
+        badge.textContent = firstResult.label;
+        badge.style.background = firstResult.color;
+        sub.textContent = `Class: ${firstResult.class === 0 ? '0 (No/mild OSA)' : '1 (Moderate/severe OSA)'}`;
+        
+        // 隐藏概率信息
+        probInfo.innerHTML = "";
 
         // 显示所有结果在 pred-list
         predList.innerHTML = ""; // 清空旧内容
-        pred_values.forEach((val, idx) => {
+        resultsData.forEach((res, idx) => {
             const p = document.createElement("p");
-            p.textContent = `Row ${idx + 1}: ${val.toFixed(3)} → ${val < threshold ? "no or mild OSA" : "moderate to severe OSA"}`;
-            p.style.color = val < threshold ? "green" : "red";
+            p.textContent = `Row ${idx + 1}: Class ${res.class} (${res.label})`;
+            p.style.color = res.color;
+            p.style.margin = "4px 0";
+            p.style.padding = "4px 8px";
+            p.style.backgroundColor = `${res.color}15`;
+            p.style.borderRadius = "4px";
             predList.appendChild(p);
         });
 
@@ -84,8 +84,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // 错误显示
     function showError(msg) {
         badge.textContent = "--";
+        badge.style.background = "#6c757d";
         sub.textContent = msg;
         sub.style.color = "gray";
+        probInfo.innerHTML = "";
         predList.innerHTML = "";
         resultContainer.style.display = "block";
     }

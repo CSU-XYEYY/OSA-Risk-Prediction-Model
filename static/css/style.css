@@ -246,6 +246,19 @@ p {
     font-size: 14px; 
 }
 
+.probability-info {
+    margin-top: 16px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    text-align: left;
+}
+
+.probability-info div {
+    margin: 4px 0;
+}
+
 /* 响应式 */
 @media (max-width:700px) {
     .input-table {
